@@ -1,7 +1,7 @@
 <?php
 /**
  * Join Model
- * 
+ *
  * Handles data operations for user registration and membership creation.
  */
 class Join_model extends Model {
@@ -80,12 +80,15 @@ class Join_model extends Model {
         $data['trongate_user_id'] = $this->db->insert($trongate_user_data, 'trongate_users');
 
         // Create a record on the members table.
+        $this->module('encryption');
+        $data['first_name'] = $this->encryption->encrypt($data['first_name']);
+        $data['last_name'] = $this->encryption->encrypt($data['last_name']);
         $data['date_created'] = time();
         $data['num_logins'] = 0;
         $data['password'] = '';
         $data['user_token'] = '';
         $member_id = $this->db->insert($data, 'members');
-        
+
         return $member_id;
     }
 
