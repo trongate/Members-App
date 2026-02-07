@@ -33,6 +33,12 @@ class Join_model extends Model {
      * @return bool|string Returns true if available, error message if taken
      */
     public function username_check(string $username): bool|string {
+
+        // Only allow letters (a-z, A-Z) and numbers (0-9).
+        if (!preg_match('/^[a-zA-Z0-9]+$/', $username)) {
+            return 'The username can only contain letters and numbers';
+        }
+
         $user_obj = $this->db->get_one_where('username', $username, 'members');
         if ($user_obj === false) {
             // The username is available!
