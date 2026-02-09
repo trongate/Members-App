@@ -40,7 +40,8 @@ class Join extends Trongate {
             // Create new member record.
             $member_id = $this->model->create_new_member_record($data);
 
-            // Send an activate account email. (later)
+            // Send an activate account email.
+            $this->send_activate_account_email($member_id);
 
             // Redirect the user to a 'check your email' page.
             redirect('join/check_your_email');
@@ -48,6 +49,43 @@ class Join extends Trongate {
         } else {
             // Present the form again.
             $this->index();
+        }
+    }
+
+    private function send_activate_account_email($member_id) {
+        // Fetch the first_name, last_name and email_address
+        $member_obj = $this->model->get_member_obj($member_id);
+
+        $first_name = $this->encryption->decrypt($member_obj->first_name);
+        $last_name = $this->encryption->decrypt($member_obj->last_name);
+
+        $activation_url = BASE_URL.'join/activate/'.$member_obj->user_token;
+
+        $data = [
+            'email_address' => $member_obj->email_address,
+            'first_name' => $first_name,
+            'last_name' => $last_name,
+            'activation_url' => $activation_url
+        ];
+
+        $body_html = $this->view('activate_account_email', $data, true);
+
+        if (strtolower(ENV) !== 'dev') {
+            // We are live!  Send the email!
+            $email_params = [
+                'to_email' => $data['email_address'],
+                'to_name' => out($data['first_name']).' '.out($data['last_name']),
+                'subject' => 'Your Trongate Account Confirmation',
+                'body_html' => $body_html
+            ];
+
+            $result = $this->trongate_email->send($email_params);
+
+            if (!$result) {
+                echo 'Failed to send email';
+                die();
+            }
+
         }
     }
 

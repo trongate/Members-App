@@ -116,4 +116,9 @@ class Join_model extends Model {
         return $member_obj;
     }
 
+    public function get_member_obj($member_id) {
+        $member_obj = $this->db->get_where($member_id, 'members');
+        return $member_obj; // returns either an object or false (bool)
+    }
+
 }
