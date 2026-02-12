@@ -49,6 +49,7 @@ CREATE TABLE `members` (
   `num_logins` int(11) NOT NULL DEFAULT 0,
   `password` text NOT NULL,
   `user_token` varchar(32) NOT NULL,
+  `confirmed` tinyint(1) NOT NULL DEFAULT 0,
   `trongate_user_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
