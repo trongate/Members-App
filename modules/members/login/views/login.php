@@ -33,15 +33,6 @@
             echo form_close();
             ?>
 
-
-
-
-
-
-
-
-
-
         </div>
         <p class="text-center">Not a member?  <?= anchor('join', 'Join now!') ?></p>
     </div>
