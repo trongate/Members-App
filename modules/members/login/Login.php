@@ -12,7 +12,12 @@ class Login extends Trongate {
         $result = $this->validation->run();
 
         if ($result === true) {
-            echo 'Well done - log user in (later!)';
+            
+            $username = post('username', true);
+            $member_obj = $this->model->attempt_find_matching_user($username);
+            $member_obj = $this->members->log_user_in($member_obj);
+            redirect($member_obj->target_url);
+
         } else {
             $this->index();
         }

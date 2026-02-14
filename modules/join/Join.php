@@ -101,9 +101,9 @@ class Join extends Trongate {
     public function activate() {
         $user_token = segment(3);
 
-        $result = $this->model->attempt_activate_account($user_token);
+        $member_obj = $this->model->attempt_activate_account($user_token);
 
-        if ($result === false) {
+        if ($member_obj === false) {
             $data = [
                 'view_module' => 'join',
                 'view_file' => 'invalid_activation_code'
@@ -111,7 +111,8 @@ class Join extends Trongate {
 
             $this->templates->public($data);
         } else {
-            echo 'Congrats!  Your account is now activated.';
+            $member_obj = $this->members->log_user_in($member_obj);
+            redirect($member_obj->target_url);
         }
     }
 
