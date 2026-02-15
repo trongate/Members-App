@@ -12,10 +12,6 @@ class Members extends Trongate {
 
         $member_obj = $this->trongate_security->make_sure_allowed('members area');
 
-        if ($member_obj === false) {
-            redirect('members/login');
-        }
-
         $data = [
             'form_location' => BASE_URL.'members/submit_update_password',
             'page_title' => 'Update Password',
