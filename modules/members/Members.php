@@ -1,11 +1,28 @@
 <?php
 class Members extends Trongate {
 
+    private string $template = 'public';
     public $login_url = 'members-login';
     public $logout_url = 'members/logout';
 
-    public function update_password() {
-        echo 'Display update password page (later!)';
+    /**
+     * Password form
+     */
+    public function update_password(): void {
+
+        $member_obj = $this->trongate_security->make_sure_allowed('members area');
+
+        if ($member_obj === false) {
+            redirect('members/login');
+        }
+
+        $data = [
+            'form_location' => BASE_URL.'members/submit_update_password',
+            'page_title' => 'Update Password',
+            'view_module' => 'members',
+            'view_file' => 'update_password'
+        ];
+        $this->templates->super_basic($data);
     }
 
     public function log_user_in($member_obj) {
@@ -62,14 +79,35 @@ class Members extends Trongate {
         $this->db->query_bind($sql, $params);
     }
 
-    public function make_sure_allowed($scenario, $params) {
-
+    /**
+     * Verifies that the current user is authorised for the given scenario.
+     *
+     * If the user is not authenticated, execution is terminated via redirect().
+     * When this method returns, it will always return a merged user/member object.
+     *
+     * @param string $scenario The authorisation scenario identifier.
+     * @param array  $params   Additional parameters for the scenario.
+     *
+     * @return object Merged object containing properties from the Trongate
+     *                user and associated member record.
+     */
+    public function make_sure_allowed(string $scenario, array $params): object {
         $trongate_user_obj = $this->trongate_tokens->get_user_obj();
 
         if ($trongate_user_obj === false) {
             redirect($this->login_url);
         }
 
+        $member_obj = $this->db->get_one_where(
+            'trongate_user_id',
+            $trongate_user_obj->trongate_user_id,
+            'members'
+        );
+
+        return (object) array_merge(
+            (array) $trongate_user_obj,
+            (array) $member_obj
+        );
     }
 
 }
