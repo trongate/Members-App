@@ -5,6 +5,9 @@ class Login extends Trongate {
         // Make sure this person is allowed to attempt to login.
         $this->rate_limiter->ensure_attempt_allowed();
 
+        // Clear IP addresses for members who haven't logged in for 24 hours.
+        $this->members->clear_old_ip_addresses();
+
         $this->view('login');
     }
 
