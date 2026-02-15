@@ -4,6 +4,7 @@ class Rate_limiter extends Trongate {
     private $max_num_attempts = 3;
 	private $timeout_value = 10800; // Three hours
 	private $timeout_url = BASE_URL.'members/login_locked';
+	private $table_name = 'login_rate_limiter';
 
 	/**
 	 * Class constructor.
@@ -52,7 +53,7 @@ class Rate_limiter extends Trongate {
 	public function register_failed_login_attempt(): void {
 		$ip_address = ip_address();
 
-		$record_obj = $this->db->get_one_where('ip_address', $ip_address, 'login_rate_limiter');
+		$record_obj = $this->db->get_one_where('ip_address', $ip_address, $this->table_name);
 
 		if ($record_obj === false) {
 			// No record exists, create a new one
@@ -62,7 +63,7 @@ class Rate_limiter extends Trongate {
 				'next_attempt_allowed'=> time()
 			];
 
-			$this->db->insert($data, 'login_rate_limiter');
+			$this->db->insert($data, $this->table_name);
 			return;
 		}
 
@@ -79,7 +80,7 @@ class Rate_limiter extends Trongate {
 			$data['next_attempt_allowed'] = time() + $this->timeout_value;
 		}
 
-		$this->db->update($update_id, $data, 'login_rate_limiter');
+		$this->db->update($update_id, $data, $this->table_name);
 	}
 
 	/**
@@ -118,7 +119,7 @@ class Rate_limiter extends Trongate {
 		}
 
 		// Retrieve login rate limiter record for this IP
-		$record_obj = $this->db->get_one_where('ip_address', $ip_address, 'login_rate_limiter');
+		$record_obj = $this->db->get_one_where('ip_address', $ip_address, $this->table_name);
 		if ($record_obj === false) {
 			return true; // No previous attempts recorded
 		}
@@ -169,7 +170,7 @@ class Rate_limiter extends Trongate {
 			'nowtime'    => time()
 		];
 
-		$sql = 'DELETE FROM login_rate_limiter WHERE ip_address = :ip_address OR next_attempt_allowed < :nowtime';
+		$sql = 'DELETE FROM '.$this->table_name.' WHERE ip_address = :ip_address OR next_attempt_allowed < :nowtime';
 		$this->db->query_bind($sql, $params);
 		$this->reset_table_id_if_empty();
 	}
@@ -189,7 +190,7 @@ class Rate_limiter extends Trongate {
 			'max_attempts' => $this->max_num_attempts
 		];
 
-		$sql = 'DELETE FROM login_rate_limiter
+		$sql = 'DELETE FROM '.$this->table_name.'
 		        WHERE next_attempt_allowed < :nowtime
 		          AND num_failed_attempts >= :max_attempts';
 		$this->db->query_bind($sql, $params);
@@ -207,11 +208,11 @@ class Rate_limiter extends Trongate {
 	 */
 	private function reset_table_id_if_empty(): void {
 		// Check if there are any rows in the table
-		$row_count = $this->db->count('login_rate_limiter');
+		$row_count = $this->db->count($this->table_name);
 
 		if ($row_count === 0) {
 			// Table is empty, reset auto-increment
-			$sql = 'ALTER TABLE login_rate_limiter AUTO_INCREMENT = 1';
+			$sql = 'ALTER TABLE '.$this->table_name.' AUTO_INCREMENT = 1';
 			$this->db->query($sql);
 		}
 	}
