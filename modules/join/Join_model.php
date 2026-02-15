@@ -94,6 +94,7 @@ class Join_model extends Model {
         $data['password'] = '';
         $data['user_token'] = make_rand_str(32);
         $data['confirmed'] = 0;
+        $data['ip_address'] = ip_address();
         $member_id = $this->db->insert($data, 'members');
 
         return $member_id;

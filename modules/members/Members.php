@@ -18,12 +18,48 @@ class Members extends Trongate {
     }
 
     public function logout() {
+        // Get current user's member ID before destroying token
+        $trongate_user_obj = $this->trongate_tokens->get_user_obj();
+        
+        if ($trongate_user_obj !== false) {
+            // Find the member record for this user
+            $member_obj = $this->db->get_one_where('trongate_user_id', $trongate_user_obj->id, 'members');
+            
+            if ($member_obj !== false) {
+                // Clear the IP address
+                $update_id = (int) $member_obj->id;
+                $data['ip_address'] = '';
+                $this->db->update($update_id, $data, 'members');
+            }
+        }
+        
         $this->trongate_tokens->destroy();
         redirect($this->login_url);
     }
 
     public function log_user_out() {
         block_url('members/log_user_out');
+    }
+
+    /**
+     * Clear IP addresses for members who haven't logged in for 24 hours
+     *
+     * This method finds all members records where last_login is greater than 0
+     * and clears the ip_address if the login happened more than 24 hours ago.
+     * This helps protect user privacy by not storing IP addresses unnecessarily.
+     *
+     * @return void
+     */
+    public function clear_old_ip_addresses(): void {
+        $twenty_four_hours_ago = time() - 86400; // 24 hours in seconds
+        
+        $sql = 'UPDATE members 
+                SET ip_address = "" 
+                WHERE last_login > 0 
+                AND last_login < :cutoff_time';
+        
+        $params = ['cutoff_time' => $twenty_four_hours_ago];
+        $this->db->query_bind($sql, $params);
     }
 
     public function make_sure_allowed($scenario, $params) {

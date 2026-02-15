@@ -12,6 +12,12 @@ class Join extends Trongate {
      * @return void
      */
     public function index(): void {
+        // Check if registration is allowed from this IP address
+        if (!$this->is_registration_allowed()) {
+            $this->registration_not_allowed();
+            return;
+        }
+        
         $data = $this->model->get_data_from_post();
         $data['view_module'] = 'join';
         $data['view_file'] = 'join';
@@ -26,6 +32,12 @@ class Join extends Trongate {
      * @return void
      */
     public function submit(): void {
+        // Check if registration is allowed from this IP address
+        if (!$this->is_registration_allowed()) {
+            $this->registration_not_allowed();
+            return;
+        }
+
         $this->validation->set_rules('username', 'username', 'required|min_length[3]|max_length[60]|callback_username_check');
         $this->validation->set_rules('first_name', 'first name', 'required|max_length[60]');
         $this->validation->set_rules('last_name', 'last name', 'required|max_length[70]');
@@ -114,6 +126,48 @@ class Join extends Trongate {
             $member_obj = $this->members->log_user_in($member_obj);
             redirect($member_obj->target_url);
         }
+    }
+
+    /**
+     * Check if registration is allowed from the current IP address
+     *
+     * Registration is NOT allowed if the IP address has created an
+     * unconfirmed account within the last 24 hours.
+     *
+     * @return bool True if registration is allowed, false otherwise
+     */
+    private function is_registration_allowed(): bool {
+        $ip_address = ip_address();
+        
+        $sql = 'SELECT COUNT(*) as count FROM members 
+                WHERE ip_address = :ip_address 
+                AND confirmed = 0 
+                AND date_created > :min_time';
+        
+        $params = [
+            'ip_address' => $ip_address,
+            'min_time' => time() - 86400 // 24 hours in seconds
+        ];
+        
+        $result = $this->db->query_bind($sql, $params);
+        return ($result[0]->count == 0);
+    }
+
+    /**
+     * Display registration not allowed page
+     *
+     * Shows an error page when registration is not allowed due to
+     * IP address restrictions.
+     *
+     * @return void
+     */
+    private function registration_not_allowed(): void {
+        $data = [
+            'view_module' => 'join',
+            'view_file' => 'registration_not_allowed'
+        ];
+        
+        $this->templates->public($data);
     }
 
     /**
