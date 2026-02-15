@@ -1,7 +1,7 @@
 <?php
 class Members extends Trongate {
 
-    private string $template = 'public';
+    public string $template = 'public';
     public $login_url = 'members-login';
     public $logout_url = 'members/logout';
 
@@ -18,7 +18,8 @@ class Members extends Trongate {
             'view_module' => 'members',
             'view_file' => 'update_password'
         ];
-        $this->templates->super_basic($data);
+        $template_method = $this->template;
+        $this->templates->$template_method($data);
     }
 
     public function log_user_in($member_obj) {
