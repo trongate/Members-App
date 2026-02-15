@@ -3,14 +3,14 @@ class Login extends Trongate {
 
     public function index() {
         // Make sure this person is allowed to attempt to login.
-        $this->rate_limiter->make_sure_login_attempt_allowed();
+        $this->rate_limiter->ensure_attempt_allowed();
 
         $this->view('login');
     }
 
     public function submit_login() {
         // Make sure this person is allowed to attempt to login.
-        $this->rate_limiter->make_sure_login_attempt_allowed();
+        $this->rate_limiter->ensure_attempt_allowed();
 
         $this->validation->set_rules('username', 'username/email', 'required|callback_login_check');
         $this->validation->set_rules('password', 'password', 'required');
@@ -20,7 +20,7 @@ class Login extends Trongate {
         if ($result === true) {
 
             // Clears any existing login rate limiter records for this user.
-            $this->rate_limiter->login_success();
+            $this->rate_limiter->after_success();
 
             $username = post('username', true);
             $member_obj = $this->model->attempt_find_matching_user($username);
@@ -30,7 +30,7 @@ class Login extends Trongate {
         } else {
 
             // Register a failed login attempt for the current IP address.
-            $this->rate_limiter->register_failed_login_attempt();
+            $this->rate_limiter->register_failed_attempt();
 
             // Present the login page (again).
             $this->index();

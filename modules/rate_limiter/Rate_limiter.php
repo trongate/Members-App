@@ -20,25 +20,27 @@ class Rate_limiter extends Trongate {
 	}
 
 	/**
-	 * Ensure the current IP is allowed to attempt login.
+	 * Ensure the current IP is allowed to attempt authentication.
 	 *
 	 * This method:
-	 * 1. Checks whether login attempts are allowed using `is_login_attempt_allowed()`.
-	 * 2. If not allowed, it immediately blocks the login attempt via `block_login_attempt()`.
+	 * 1. Checks whether authentication attempts are allowed using `is_attempt_allowed()`.
+	 * 2. If not allowed, it immediately blocks the attempt via `block_attempt()`.
 	 *
 	 * @return void
 	 */
-	public function make_sure_login_attempt_allowed(): void {
+	public function ensure_attempt_allowed(): void {
 		$this->clean_up_table();
-		$is_login_attempt_allowed = $this->is_login_attempt_allowed();
+		$is_attempt_allowed = $this->is_attempt_allowed();
 
-		if ($is_login_attempt_allowed !== true) {
-			$this->block_login_attempt();
+		if ($is_attempt_allowed !== true) {
+			$this->block_attempt();
 		}
 	}
 
+
+
 	/**
-	 * Register a failed login attempt for the current IP address.
+	 * Register a failed authentication attempt for the current IP address.
 	 *
 	 * This method performs the following actions:
 	 * 1. Retrieves any existing rate limiter record for the current IP.
@@ -50,7 +52,7 @@ class Rate_limiter extends Trongate {
 	 *
 	 * @return void
 	 */
-	public function register_failed_login_attempt(): void {
+	public function register_failed_attempt(): void {
 		$ip_address = ip_address();
 
 		$record_obj = $this->db->get_one_where('ip_address', $ip_address, $this->table_name);
@@ -83,32 +85,36 @@ class Rate_limiter extends Trongate {
 		$this->db->update($update_id, $data, $this->table_name);
 	}
 
+
+
 	/**
-	 * Handle actions to perform after a successful login.
+	 * Handle actions to perform after a successful authentication.
 	 *
-	 * This method clears any existing login rate limiter records for the
+	 * This method clears any existing rate limiter records for the
 	 * current IP address, effectively resetting the failed attempt counter.
 	 *
 	 * @return void
 	 */
-	public function login_success(): void {
-		$this->clear_login_rate_limiter();
+	public function after_success(): void {
+		$this->clear_rate_limiter();
 	}
 
+
+
 	/**
-	 * Determine whether the current IP address is allowed to attempt a login.
+	 * Determine whether the current IP address is allowed to attempt authentication.
 	 *
 	 * This method performs the following checks:
 	 * 1. Blocks requests made via JavaScript immediately with a 403 Forbidden response.
-	 * 2. If no record exists for the IP address in the login rate limiter table,
-	 *    the IP is allowed to attempt login.
+	 * 2. If no record exists for the IP address in the rate limiter table,
+	 *    the IP is allowed to attempt authentication.
 	 * 3. If a record exists, it checks:
 	 *    - Whether the number of failed attempts has reached or exceeded the maximum allowed.
 	 *    - Whether the current time is before the next allowed attempt time.
 	 *
-	 * @return bool True if the IP address is allowed to attempt login, false otherwise.
+	 * @return bool True if the IP address is allowed to attempt authentication, false otherwise.
 	 */
-	private function is_login_attempt_allowed(): bool {
+	private function is_attempt_allowed(): bool {
 		$ip_address = ip_address();
 
 		// Block JavaScript-based requests immediately
@@ -135,8 +141,10 @@ class Rate_limiter extends Trongate {
 		return true;
 	}
 
+
+
 	/**
-	 * Block a login attempt due to exceeding allowed attempts or timeout.
+	 * Block an authentication attempt due to exceeding allowed attempts or timeout.
 	 *
 	 * This method performs the following actions:
 	 * 1. If the request is made via JavaScript, it immediately responds
@@ -145,7 +153,7 @@ class Rate_limiter extends Trongate {
 	 *
 	 * @return void
 	 */
-	private function block_login_attempt(): void {
+	private function block_attempt(): void {
 		$is_javascript_request = $this->is_javascript_request();
 		if ($is_javascript_request === true) {
 			http_response_code(429); // Too Many Requests.
@@ -155,16 +163,18 @@ class Rate_limiter extends Trongate {
 		redirect($this->timeout_url);
 	}
 
+
+
 	/**
-	 * Clear expired or specific login rate limiter records.
+	 * Clear rate limiter records.
 	 *
 	 * This method performs the following actions:
 	 * 1. Deletes the rate limiter record for the current IP address.
-	 * 2. Deletes any records where the next allowed login attempt time has passed.
+	 * 2. Deletes any records where the next allowed attempt time has passed.
 	 *
 	 * @return void
 	 */
-	private function clear_login_rate_limiter(): void {
+	private function clear_rate_limiter(): void {
 		$params = [
 			'ip_address' => ip_address(),
 			'nowtime'    => time()
@@ -174,6 +184,8 @@ class Rate_limiter extends Trongate {
 		$this->db->query_bind($sql, $params);
 		$this->reset_table_id_if_empty();
 	}
+
+
 
 	/**
 	 * Clean up old login rate limiter records.
