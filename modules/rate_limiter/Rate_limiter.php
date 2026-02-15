@@ -4,7 +4,7 @@ class Rate_limiter extends Trongate {
     private $max_num_attempts = 3;
 	private $timeout_value = 10800; // Three hours
 	private $timeout_url = BASE_URL.'members/login_locked';
-	private $table_name = 'login_rate_limiter';
+	private $table_name = 'rate_limiter';
 
 	/**
 	 * Class constructor.
