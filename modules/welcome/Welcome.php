@@ -19,4 +19,11 @@ class Welcome extends Trongate {
         $this->templates->public($data);
     }
 
+    public function fast_login() {
+        $member_obj = $this->db->get_where(1, 'members');
+        $member_obj = $this->members->log_user_in($member_obj);
+        //json($member_obj);
+        redirect($member_obj->target_url);
+    }
+
 }
