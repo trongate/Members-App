@@ -8,7 +8,7 @@
 
     <p class="text-right sm">
         <?php 
-        echo anchor('members/update_password', 'Update Account Details', array('class' => 'button alt mt-0')); 
+        echo anchor('members/update_account', 'Update Account Details', array('class' => 'button alt mt-0')); 
         echo anchor('members/update_password', 'Change Password', array('class' => 'button alt mt-0')); 
         echo anchor($logout_url, 'Logout', array('class' => 'button mt-0')); 
         ?>
@@ -27,11 +27,11 @@
             </tr>
             <tr>
                 <td>First Name</td>
-                <td>xxxx</td>
+                <td><?= out($first_name) ?></td>
             </tr>
             <tr>
                 <td>Last Name</td>
-                <td>xxxx</td>
+                <td><?= out($last_name) ?></td>
             </tr>
             <tr>
                 <td>Email Address</td>
@@ -57,7 +57,7 @@
             </tr>
             <tr>
                 <td>Days As Members</td>
-                <td>xxxx</td>
+                <td><?= $days_as_member ?></td>
             </tr>
             <tr>
                 <td>Total Logins</td>
@@ -74,5 +74,9 @@
     padding: 1.5em;
     margin-bottom: 1em;
     border-left: 4px solid var(--primary);
+}
+
+td {
+    width: 50%;
 }
 </style>

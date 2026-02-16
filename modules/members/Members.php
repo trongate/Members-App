@@ -21,9 +21,14 @@ class Members extends Trongate {
         if ($member_obj === false) {
             redirect($this->login_url);
         }
+        
+        $days_as_member = (time() - $member_obj->date_created) / 86400 | 0;
 
         // Prepare data array for the template
         $data = [
+            'days_as_member' => $days_as_member,
+            'first_name' => $this->encryption->decrypt($member_obj->first_name),
+            'last_name' => $this->encryption->decrypt($member_obj->last_name),
             'logout_url' => $this->logout_url,
             'view_module' => 'members',
             'view_file'   => 'your_account',
