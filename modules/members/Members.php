@@ -59,6 +59,97 @@ class Members extends Trongate {
         $template_method = $this->template;
         $this->templates->$template_method($data);
     }
+    
+    function submit_update_account() {
+
+        $member_obj = $this->trongate_security->make_sure_allowed('members area');
+
+        if ($member_obj == false) {
+            redirect($this->login_url);
+        }
+
+        $submit = post('submit', true);
+
+        if ($submit == 'Update Account') {
+            
+            $this->validation->set_rules('username', 'username', 'required|min_length[3]|max_length[60]|callback_username_check');
+            $this->validation->set_rules('first_name', 'first name', 'required|min_length[2]|max_length[60]');
+            $this->validation->set_rules('last_name', 'last name', 'required|min_length[2]|max_length[70]');
+            $this->validation->set_rules('email_address', 'email address', 'required|valid_email|max_length[70]|callback_email_check');
+
+            $result = $this->validation->run();
+
+            if ($result == true) {
+
+                $data = $this->model->get_data_from_post();
+
+                $first_name = post('first_name', true);
+                $data['first_name'] = $this->encryption->encrypt($first_name);
+
+                $last_name = post('last_name', true);
+                $data['last_name'] = $this->encryption->encrypt($last_name);
+
+                $update_id = (int) $member_obj->id;
+                $this->db->update($update_id, $data, 'members');
+
+                set_flashdata('Your account was successfully updated');
+                redirect('members/your_account');
+
+            } else {
+                //form submission error
+                $this->update_account();
+            }
+
+        }
+
+    }
+
+    public function username_check($username) {
+        block_url('members/username_check');
+
+        // Only allow letters (a-z, A-Z) and numbers (0-9).
+        if (!preg_match('/^[a-zA-Z0-9]+$/', $username)) {
+            return 'The username can only contain letters and numbers';
+        }
+
+        $trongate_user_obj = $this->trongate_tokens->get_user_obj();
+        $trongate_user_id = (int) ($trongate_user_obj->trongate_user_id ?? 0);
+
+        $params = [
+            'trongate_user_id' => $trongate_user_id,
+            'username' => $username
+        ];
+
+        $sql = 'SELECT * FROM members WHERE username = :username AND trongate_user_id != :trongate_user_id';
+        $rows = $this->db->query_bind($sql, $params, 'object');
+
+        if (!empty($rows)) {
+            return 'The username that you submitted is not available.';
+        }
+
+        return true;
+    }
+
+    public function email_check($email_address) {
+        block_url('members/email_check');
+
+        $trongate_user_obj = $this->trongate_tokens->get_user_obj();
+        $trongate_user_id = (int) ($trongate_user_obj->trongate_user_id ?? 0);
+
+        $params = [
+            'trongate_user_id' => $trongate_user_id,
+            'email_address' => $email_address
+        ];
+
+        $sql = 'SELECT * FROM members WHERE email_address = :email_address AND trongate_user_id != :trongate_user_id';
+        $rows = $this->db->query_bind($sql, $params, 'object');
+
+        if (!empty($rows)) {
+            return 'The email address that you submitted is not available.';
+        }
+
+        return true;
+    }
 
     /**
      * Password form
@@ -110,7 +201,7 @@ class Members extends Trongate {
                     $flash_msg = 'Your password was successfully updated';
                 }
 
-                set_flashdata('<span class="success_text">'.$flash_msg.'</span>');
+                set_flashdata($flash_msg);
                 redirect('members/your_account');
 
             } else {

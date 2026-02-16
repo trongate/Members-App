@@ -1,9 +1,9 @@
 <div class="container-xs text-left">
     <h2 class="text-center">Your Account</h2>
-
+    <?= flashdata() ?>
     <div class="welcome-message text-center">
         <h3>Welcome back, <?= out($member->username) ?></h3>
-        <p>Here's your complete account overview and management dashboard.</p>
+        <p>Here's your complete account overview.</p>
     </div>
 
     <p class="text-right sm">
