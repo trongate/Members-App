@@ -7,12 +7,14 @@
 class Join extends Trongate {
 
     /**
-     * Display the registration form
+     * Display the registration form.
+     *
+     * Ensures registration is permitted from the current IP address
+     * before rendering the join view.
      *
      * @return void
      */
     public function index(): void {
-        // Check if registration is allowed from this IP address
         if (!$this->is_registration_allowed()) {
             $this->registration_not_allowed();
             return;
@@ -25,14 +27,14 @@ class Join extends Trongate {
     }
 
     /**
-     * Process registration form submission
+     * Process registration form submission.
      *
-     * Validates user input and creates a new member record if validation passes.
+     * Validates input, creates a new member record if valid,
+     * sends an activation email, and redirects accordingly.
      *
      * @return void
      */
     public function submit(): void {
-        // Check if registration is allowed from this IP address
         if (!$this->is_registration_allowed()) {
             $this->registration_not_allowed();
             return;
@@ -43,29 +45,26 @@ class Join extends Trongate {
         $this->validation->set_rules('last_name', 'last name', 'required|max_length[70]');
         $this->validation->set_rules('email_address', 'email address', 'required|valid_email|max_length[70]|callback_email_check');
 
-        $result = $this->validation->run();  // return true or false.
+        $result = $this->validation->run();
 
         if ($result === true) {
-            // Fetch the posted data.
             $data = $this->model->get_data_from_post();
-
-            // Create new member record.
             $member_id = $this->model->create_new_member_record($data);
-
-            // Send an activate account email.
             $this->send_activate_account_email($member_id);
-
-            // Redirect the user to a 'check your email' page.
             redirect('join/check_your_email');
-
         } else {
-            // Present the form again.
             $this->index();
         }
     }
 
-    private function send_activate_account_email($member_id) {
-        // Fetch the first_name, last_name and email_address
+    /**
+     * Send account activation email to newly registered member.
+     *
+     * @param int $member_id The ID of the newly created member.
+     *
+     * @return void
+     */
+    private function send_activate_account_email(int $member_id): void {
         $member_obj = $this->model->get_member_obj($member_id);
 
         $first_name = $this->encryption->decrypt($member_obj->first_name);
@@ -83,7 +82,6 @@ class Join extends Trongate {
         $body_html = $this->view('activate_account_email', $data, true);
 
         if (strtolower(ENV) !== 'dev') {
-            // We are live!  Send the email!
             $email_params = [
                 'to_email' => $data['email_address'],
                 'to_name' => out($data['first_name']).' '.out($data['last_name']),
@@ -97,11 +95,15 @@ class Join extends Trongate {
                 echo 'Failed to send email';
                 die();
             }
-
         }
     }
 
-    public function check_your_email() {
+    /**
+     * Display the "check your email" page.
+     *
+     * @return void
+     */
+    public function check_your_email(): void {
         $data = [
             'view_module' => 'join',
             'view_file' => 'check_your_email'
@@ -110,7 +112,15 @@ class Join extends Trongate {
         $this->templates->public($data);
     }
 
-    public function activate() {
+    /**
+     * Attempt to activate a user account via token.
+     *
+     * If activation succeeds, logs the user in and redirects.
+     * Otherwise displays an invalid activation page.
+     *
+     * @return void
+     */
+    public function activate(): void {
         $user_token = segment(3);
 
         $member_obj = $this->model->attempt_activate_account($user_token);
@@ -129,12 +139,12 @@ class Join extends Trongate {
     }
 
     /**
-     * Check if registration is allowed from the current IP address
+     * Determine whether registration is allowed for the current IP address.
      *
-     * Registration is NOT allowed if the IP address has created an
-     * unconfirmed account within the last 24 hours.
+     * Registration is denied if an unconfirmed account was created
+     * from the same IP within the last 24 hours.
      *
-     * @return bool True if registration is allowed, false otherwise
+     * @return bool True if allowed, otherwise false.
      */
     private function is_registration_allowed(): bool {
         $ip_address = ip_address();
@@ -146,7 +156,7 @@ class Join extends Trongate {
         
         $params = [
             'ip_address' => $ip_address,
-            'min_time' => time() - 86400 // 24 hours in seconds
+            'min_time' => time() - 86400
         ];
         
         $result = $this->db->query_bind($sql, $params);
@@ -154,10 +164,7 @@ class Join extends Trongate {
     }
 
     /**
-     * Display registration not allowed page
-     *
-     * Shows an error page when registration is not allowed due to
-     * IP address restrictions.
+     * Display registration restriction page.
      *
      * @return void
      */
@@ -171,33 +178,25 @@ class Join extends Trongate {
     }
 
     /**
-     * Validate username availability
+     * Validate username availability.
      *
-     * Callback method for form validation to check if username is already taken.
+     * @param string $username The username to validate.
      *
-     * @param string $username The username to check
-     * @return bool|string Returns true if available, error message if taken
+     * @return bool|string True if available, otherwise error message.
      */
     public function username_check(string $username): bool|string {
-        // returns true or a string.
-        // Make sure the submitted username is not already taken.
-        $result = $this->model->username_check($username);
-        return $result;
+        return $this->model->username_check($username);
     }
 
     /**
-     * Validate email address availability
+     * Validate email address availability.
      *
-     * Callback method for form validation to check if email address is already taken.
+     * @param string $email_address The email address to validate.
      *
-     * @param string $email_address The email address to check
-     * @return bool|string Returns true if available, error message if taken
+     * @return bool|string True if available, otherwise error message.
      */
     public function email_check(string $email_address): bool|string {
-        // returns true or a string.
-        // Make sure the submitted email address is not already taken.
-        $result = $this->model->email_check($email_address);
-        return $result;
+        return $this->model->email_check($email_address);
     }
 
 }

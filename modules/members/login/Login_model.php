@@ -1,7 +1,19 @@
 <?php
 class Login_model extends Model {
 
-    public function login_check($submitted_username, $submitted_password) {
+    /**
+     * Validate submitted login credentials.
+     *
+     * Confirms that a matching confirmed member exists
+     * and that the submitted password matches the stored hash.
+     *
+     * @param string $submitted_username Username or email address.
+     * @param string $submitted_password Plain text password.
+     *
+     * @return bool|string Returns true if credentials are valid,
+     *                     otherwise an error message string.
+     */
+    public function login_check(string $submitted_username, string $submitted_password): bool|string {
         $error_msg = 'You did not submit a correct username/email and/or password.';
         $member_obj = $this->attempt_find_matching_user($submitted_username);
 
@@ -18,7 +30,15 @@ class Login_model extends Model {
         return true;
     }
 
-    public function attempt_find_matching_user($submitted_username) {
+    /**
+     * Attempt to locate a confirmed member by username or email address.
+     *
+     * @param string $submitted_username Username or email address.
+     *
+     * @return object|false Returns the member object if found,
+     *                      otherwise false.
+     */
+    public function attempt_find_matching_user(string $submitted_username): object|false {
         $params = [
             'username' => $submitted_username,
             'email_address' => $submitted_username
@@ -30,7 +50,7 @@ class Login_model extends Model {
         $rows = $this->db->query_bind($sql, $params, 'object');
 
         if (empty($rows)) {
-            return false; // No matching user found.
+            return false;
         }
 
         $member_obj = $rows[0];

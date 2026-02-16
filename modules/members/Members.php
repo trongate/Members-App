@@ -50,13 +50,31 @@ class Members extends Trongate {
         $this->templates->$member_template($data);
     }
 
-    private function set_password_required($member_obj) {
-        // Should this user be encouraged to set a password?
+    /**
+     * Determine whether the given member is required to set a password.
+     *
+     * A password is considered required if the stored password property
+     * is either unset or an empty string.
+     *
+     * @param object $member_obj An object representing the member record.
+     *
+     * @return bool Returns true if a password is required, otherwise false.
+     */
+    private function set_password_required(object $member_obj): bool {
         $stored_password = $member_obj->password ?? '';
         $password_required = ($stored_password === '') ? true : false;
         return $password_required;
     }
-    
+
+    /**
+     * Display and process the member account update form.
+     *
+     * If no form submission is detected, the existing member data is
+     * prepared and decrypted for display. If the form has been submitted,
+     * posted data is retrieved for processing.
+     *
+     * @return void
+     */
     public function update_account(): void {
 
         $member_obj = $this->trongate_security->make_sure_allowed('members area');
@@ -77,8 +95,18 @@ class Members extends Trongate {
         $template_method = $this->template;
         $this->templates->$template_method($data);
     }
-    
-    function submit_update_account() {
+
+    /**
+     * Handle submission of the account update form.
+     *
+     * Validates posted member data and, if successful, updates the
+     * corresponding database record. On validation failure, the
+     * update form is reloaded. May redirect the user depending on
+     * authorisation or outcome.
+     *
+     * @return void
+     */
+    public function submit_update_account(): void {
 
         $member_obj = $this->trongate_security->make_sure_allowed('members area');
 
@@ -122,7 +150,18 @@ class Members extends Trongate {
 
     }
 
-    public function username_check($username) {
+    /**
+     * Validate that the submitted username is valid and available.
+     *
+     * Ensures the username contains only alphanumeric characters and
+     * is not already used by another member (excluding the current user).
+     *
+     * @param string $username The username to validate.
+     *
+     * @return bool|string Returns true if valid and available,
+     *                     otherwise returns an error message string.
+     */
+    public function username_check(string $username): bool|string {
         block_url('members/username_check');
 
         // Only allow letters (a-z, A-Z) and numbers (0-9).
@@ -148,7 +187,18 @@ class Members extends Trongate {
         return true;
     }
 
-    public function email_check($email_address) {
+    /**
+     * Validate that the submitted email address is available.
+     *
+     * Ensures the email address is not already used by another member
+     * (excluding the current user).
+     *
+     * @param string $email_address The email address to validate.
+     *
+     * @return bool|string Returns true if available,
+     *                     otherwise returns an error message string.
+     */
+    public function email_check(string $email_address): bool|string {
         block_url('members/email_check');
 
         $trongate_user_obj = $this->trongate_tokens->get_user_obj();
@@ -170,7 +220,13 @@ class Members extends Trongate {
     }
 
     /**
-     * Password form
+     * Display the password update / set password form.
+     *
+     * Determines whether the member is setting a password
+     * for the first time or updating an existing one,
+     * then renders the appropriate view.
+     *
+     * @return void
      */
     public function update_password(): void {
 
@@ -193,9 +249,15 @@ class Members extends Trongate {
     }
 
     /**
-     * Process password update
+     * Handle submission of the password update form.
+     *
+     * Validates the submitted password, hashes it,
+     * updates the database record, and redirects
+     * the user accordingly.
+     *
+     * @return void
      */
-    function submit_update_password() {
+    public function submit_update_password(): void {
 
         $member_obj = $this->trongate_security->make_sure_allowed('members area');
 
@@ -237,7 +299,14 @@ class Members extends Trongate {
 
     }
 
-    function hash_string($str) {
+    /**
+     * Generate a bcrypt hash for the given string.
+     *
+     * @param string $str The plain text string to hash.
+     *
+     * @return string The hashed string.
+     */
+    public function hash_string(string $str): string {
         block_url('members/hash_string');
         $hashed_string = password_hash($str, PASSWORD_BCRYPT, array(
             'cost' => 11
@@ -245,13 +314,32 @@ class Members extends Trongate {
         return $hashed_string;
     }
 
-    function verify_hash($plain_text_str, $hashed_string) {
+    /**
+     * Verify a plain text string against a hashed value.
+     *
+     * @param string $plain_text_str The plain text input.
+     * @param string $hashed_string  The stored hashed string.
+     *
+     * @return bool Returns true if the hash matches, otherwise false.
+     */
+    public function verify_hash(string $plain_text_str, string $hashed_string): bool {
         block_url('members/verify_hash');
         $result = password_verify($plain_text_str, $hashed_string);
         return $result; //TRUE or FALSE
     }
 
-    function password_check($str) {
+    /**
+     * Validate password strength requirements.
+     *
+     * Ensures the password contains at least one letter
+     * and one number.
+     *
+     * @param string $str The password string to validate.
+     *
+     * @return bool|string Returns true if valid,
+     *                     otherwise an error message string.
+     */
+    public function password_check(string $str): bool|string {
 
         block_url('members/password_check');
 
@@ -264,7 +352,17 @@ class Members extends Trongate {
         }
     }
 
-    public function log_user_in($member_obj) {
+    /**
+     * Log a member into the system.
+     *
+     * Executes the model login process and determines
+     * the appropriate target URL.
+     *
+     * @param object $member_obj The member object.
+     *
+     * @return object The updated member object.
+     */
+    public function log_user_in(object $member_obj): object {
         block_url('members/log_user_in');
 
         // Execute the login process
@@ -273,7 +371,16 @@ class Members extends Trongate {
         return $member_obj;
     }
 
-    public function logout() {
+    /**
+     * Log the current user out of the system.
+     *
+     * Clears stored IP address data (if applicable),
+     * destroys authentication tokens, and redirects
+     * to the login URL.
+     *
+     * @return void
+     */
+    public function logout(): void {
         // Get current user's member ID before destroying token
         $trongate_user_obj = $this->trongate_tokens->get_user_obj();
 
@@ -291,10 +398,6 @@ class Members extends Trongate {
 
         $this->trongate_tokens->destroy();
         redirect($this->login_url);
-    }
-
-    public function log_user_out() {
-        block_url('members/log_user_out');
     }
 
     /**
