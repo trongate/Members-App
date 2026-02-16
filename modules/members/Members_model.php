@@ -24,5 +24,15 @@ class Members_model extends Model {
         $member_obj->num_logins = $data['num_logins'];
         return $member_obj;
     }
+    
+    public function get_data_from_post() {
+        $data = [
+            'username' => post('username', true),
+            'first_name' => post('first_name', true),
+            'last_name' => post('last_name', true),
+            'email_address' => post('email_address', true),
+        ];
+        return $data;
+    }
 
 }

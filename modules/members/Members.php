@@ -38,6 +38,27 @@ class Members extends Trongate {
         $member_template = $this->template;
         $this->templates->$member_template($data);
     }
+    
+    public function update_account(): void {
+
+        $member_obj = $this->trongate_security->make_sure_allowed('members area');
+        
+        $submit = post('submit');
+        
+        if ($submit === '') {
+            $data = (array) $member_obj;
+            $data['first_name'] = $this->encryption->decrypt($member_obj->first_name);
+            $data['last_name'] = $this->encryption->decrypt($member_obj->last_name);
+        } else {
+            $data = $this->model->get_data_from_post();
+        }
+        
+        $data['form_location'] = str_replace('/update_account', '/submit_update_account', current_url());
+        $data['view_module'] = 'members';
+        $data['view_file'] = 'update_account';
+        $template_method = $this->template;
+        $this->templates->$template_method($data);
+    }
 
     /**
      * Password form
