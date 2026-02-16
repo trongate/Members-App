@@ -21,11 +21,22 @@ class Members extends Trongate {
         if ($member_obj === false) {
             redirect($this->login_url);
         }
-        
+
+        $set_password_required = $this->set_password_required($member_obj);
+
+        $args['username'] = $member_obj->username;
+        if ($set_password_required === true) {
+            $info = $this->view('no_password_alert', $args, true);
+        } else {
+            $info = $this->view('standard_welcome_alert', $args, true);
+        }
+
         $days_as_member = (time() - $member_obj->date_created) / 86400 | 0;
 
         // Prepare data array for the template
         $data = [
+            'info' => $info,
+            'set_password_required' => $set_password_required,
             'days_as_member' => $days_as_member,
             'first_name' => $this->encryption->decrypt($member_obj->first_name),
             'last_name' => $this->encryption->decrypt($member_obj->last_name),
@@ -37,6 +48,13 @@ class Members extends Trongate {
 
         $member_template = $this->template;
         $this->templates->$member_template($data);
+    }
+
+    private function set_password_required($member_obj) {
+        // Should this user be encouraged to set a password?
+        $stored_password = $member_obj->password ?? '';
+        $password_required = ($stored_password === '') ? true : false;
+        return $password_required;
     }
     
     public function update_account(): void {
@@ -92,7 +110,7 @@ class Members extends Trongate {
                 $update_id = (int) $member_obj->id;
                 $this->db->update($update_id, $data, 'members');
 
-                set_flashdata('Your account was successfully updated');
+                set_flashdata('Your account was successfully updated.');
                 redirect('members/your_account');
 
             } else {
@@ -157,10 +175,16 @@ class Members extends Trongate {
     public function update_password(): void {
 
         $member_obj = $this->trongate_security->make_sure_allowed('members area');
+        $headline = ($member_obj->password === '') ? 'Set Your Password' : 'Update Password';
+
+        $info1 = 'Please set a password for your account using the form below.';
+        $info2 = 'Please enter your new password below then hit \'Set Password\'.';
+        $info = ($member_obj->password === '') ? $info1 : $info2;
 
         $data = [
             'form_location' => BASE_URL.'members/submit_update_password',
-            'page_title' => 'Update Password',
+            'headline' => $headline,
+            'info' => $info,
             'view_module' => 'members',
             'view_file' => 'update_password'
         ];
@@ -198,7 +222,7 @@ class Members extends Trongate {
                 if ($num_logins<2) {
                     $flash_msg = 'Ahoy!  Welcome aboard the fun bus.  It\'s great to have you here!';
                 } else {
-                    $flash_msg = 'Your password was successfully updated';
+                    $flash_msg = 'Your password was successfully updated.';
                 }
 
                 set_flashdata($flash_msg);

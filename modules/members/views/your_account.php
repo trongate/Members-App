@@ -2,14 +2,14 @@
     <h2 class="text-center">Your Account</h2>
     <?= flashdata() ?>
     <div class="welcome-message text-center">
-        <h3>Welcome back, <?= out($member->username) ?></h3>
-        <p>Here's your complete account overview.</p>
+        <?= $info ?>
     </div>
 
     <p class="text-right sm">
         <?php 
         echo anchor('members/update_account', 'Update Account Details', array('class' => 'button alt mt-0')); 
-        echo anchor('members/update_password', 'Change Password', array('class' => 'button alt mt-0')); 
+        $btn_text = ($set_password_required === true) ? 'Set Your Password' : 'Change Password';
+        echo anchor('members/update_password', $btn_text, array('class' => 'button alt mt-0')); 
         echo anchor($logout_url, 'Logout', array('class' => 'button mt-0')); 
         ?>
     </p>

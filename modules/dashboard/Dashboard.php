@@ -8,6 +8,8 @@ class Dashboard extends Trongate {
 
         echo 'private members area<br><br>';
 
+        echo anchor('members/your_account', 'Your Account').'<br><br>';
+
         $logout_url = $this->members->logout_url;
 
         echo anchor($logout_url, 'Log Out');

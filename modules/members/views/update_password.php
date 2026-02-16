@@ -1,5 +1,5 @@
-<h1 class="mt-1">Update Password</h1>
-<p>Please enter your new password below and then hit 'Set Password'.</p>
+<h1 class="mt-1"><?= $headline ?></h1>
+<p><?= $info ?></p>
 
 <div class="container-xs">
     <?php
