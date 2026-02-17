@@ -159,8 +159,8 @@ class Join extends Trongate {
             'min_time' => time() - 86400
         ];
         
-        $result = $this->db->query_bind($sql, $params);
-        return ($result[0]->count == 0);
+        $rows = $this->db->query_bind($sql, $params, 'object');
+        return ($rows[0]->count == 0);
     }
 
     /**
