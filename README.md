@@ -119,6 +119,6 @@ If you encounter issues:
 - [PHP Official Website](https://www.php.net/)
 - [MySQL Documentation](https://dev.mysql.com/doc/)
 
-------
+-------
 
 *Happy coding! Follow along with the YouTube series to build this application step by step.*
