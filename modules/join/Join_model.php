@@ -117,6 +117,16 @@ class Join_model extends Model {
         return $member_obj;
     }
 
+    public function is_token_valid($user_token) {
+        $member_obj = $this->db->get_one_where('user_token', $user_token, 'members');
+
+        if ($member_obj === false) {
+            return false;
+        } else {
+            return true;
+        }   
+    }
+
     public function get_member_obj($member_id) {
         $member_obj = $this->db->get_where($member_id, 'members');
         return $member_obj; // returns either an object or false (bool)

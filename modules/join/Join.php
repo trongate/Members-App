@@ -113,29 +113,76 @@ class Join extends Trongate {
     }
 
     /**
-     * Attempt to activate a user account via token.
+     * Display account activation confirmation screen.
      *
-     * If activation succeeds, logs the user in and redirects.
-     * Otherwise displays an invalid activation page.
+     * Retrieves the user token from the URL, validates it,
+     * and either shows the activation confirmation form
+     * or an invalid activation code page.
+     *
+     * URL format: /join/activate/{user_token}
      *
      * @return void
      */
     public function activate(): void {
-        $user_token = segment(3);
 
-        $member_obj = $this->model->attempt_activate_account($user_token);
+        $data['user_token'] = segment(3);
 
-        if ($member_obj === false) {
+        $token_valid = $this->model->is_token_valid($data['user_token']);
+
+        if ($token_valid === false) {
+
             $data = [
                 'view_module' => 'join',
-                'view_file' => 'invalid_activation_code'
+                'view_file'   => 'invalid_activation_code'
             ];
 
             $this->templates->public($data);
-        } else {
-            $member_obj = $this->members->log_user_in($member_obj);
-            redirect($member_obj->target_url);
+            return;
         }
+
+        /*
+         * The confirm_activate view expects:
+         * $user_token
+         */
+        $this->view('confirm_activate', $data);
+    }
+
+    /**
+     * Process activation confirmation submission.
+     *
+     * Attempts to activate the member account using the submitted
+     * user token. If successful, logs the member in and redirects
+     * to their target URL. Otherwise displays an invalid activation page.
+     *
+     * @return void
+     */
+    public function submit_activate_account(): void {
+
+        $user_token = post('user_token');
+
+        /*
+         * attempt_activate_account() returns object|false
+         */
+        $member_obj = $this->model->attempt_activate_account($user_token);
+
+        if ($member_obj === false) {
+
+            $data = [
+                'view_module' => 'join',
+                'view_file'   => 'invalid_activation_code'
+            ];
+
+            $this->templates->public($data);
+            return;
+        }
+
+        /*
+         * log_user_in() is expected to return the authenticated
+         * member object (containing target_url).
+         */
+        $member_obj = $this->members->log_user_in($member_obj);
+
+        redirect($member_obj->target_url);
     }
 
     /**
