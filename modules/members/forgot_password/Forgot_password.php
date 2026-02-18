@@ -86,6 +86,20 @@ class Forgot_password extends Trongate {
 
         if (strtolower(ENV) !== 'dev') {
             // Fire the email here.
+            $email_params = [
+                'to_email' => $member_obj->email_address,
+                'to_name' => out($first_name).' '.out($last_name),
+                'subject' => 'Your Password Reset Request',
+                'body_html' => $email_body
+            ];
+
+            $result = $this->trongate_email->send($email_params);
+
+            if (!$result) {
+                echo 'Failed to send email';
+                die();
+            }
+
         }
 
         redirect('members-forgot_password/done');
