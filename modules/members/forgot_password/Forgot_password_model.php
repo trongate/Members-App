@@ -1,33 +1,46 @@
 <?php
 class Forgot_password_model extends Model {
 
-    public function get_member($username) {
-        // Returns either an object or false.
+    /**
+     * Retrieve a member by username OR email address.
+     *
+     * Returns a member object if found, otherwise false.
+     *
+     * @param string $username
+     * @return object|false
+     */
+    public function get_member(string $username): object|false {
+
         $params = [
-        	'username' => $username,
-        	'email_address' => $username
+            'username'      => $username,
+            'email_address' => $username
         ];
 
         $sql = 'SELECT * FROM members 
-                    WHERE 
-                    username = :username 
-                    OR 
-                    email_address = :email_address';
+                WHERE 
+                username = :username 
+                OR 
+                email_address = :email_address';
+
         $rows = $this->db->query_bind($sql, $params, 'object');
+
         if (empty($rows)) {
-        	return false;
-        } else {
-        	return $rows[0]; // A PHP object.
-        }
-    }
-
-    public function is_token_valid($token) {
-        $record_obj = $this->db->get_one_where('token', $token, 'password_reset_tokens');
-        if ($record_obj === false) {
             return false;
-        } else {
-            return true;
         }
+
+        return $rows[0];
     }
 
+    /**
+     * Determine whether a password reset token exists.
+     *
+     * @param string $token
+     * @return bool
+     */
+    public function is_token_valid(string $token): bool {
+
+        $record_obj = $this->db->get_one_where('token', $token, 'password_reset_tokens');
+
+        return ($record_obj !== false);
+    }
 }
