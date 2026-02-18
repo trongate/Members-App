@@ -35,6 +35,7 @@
 
         </div>
         <p class="text-center">Not a member?  <?= anchor('join', 'Join now!') ?></p>
+        <p class="text-center">Forgot password?  <?= anchor('members-forgot_password', 'Reset it here') ?>.</p>
     </div>
 </body>
 </html>
