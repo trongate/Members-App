@@ -41,6 +41,3 @@
     </div>
 </body>
 </html>
-```
-
-Now for requests 2 and 3, I need to update the IP address when users log in and clear it when they log out. Let me check the Login.php file to see where login happens:
