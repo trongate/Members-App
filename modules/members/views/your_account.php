@@ -56,7 +56,7 @@
                 <td><?= date('l jS F Y', $member->date_created) ?></td>
             </tr>
             <tr>
-                <td>Days As Members</td>
+                <td>Days As Member</td>
                 <td><?= $days_as_member ?></td>
             </tr>
             <tr>
