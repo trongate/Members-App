@@ -367,7 +367,7 @@ class Members extends Trongate {
 
         // Execute the login process
         $member_obj = $this->model->log_user_in($member_obj);
-        $member_obj->target_url = ($member_obj->password === '') ? 'members/update_password' : 'members/your_account';
+        $member_obj->target_url = ($member_obj->password === '') ? 'members/update_password' : 'dashboard';
         return $member_obj;
     }
 
