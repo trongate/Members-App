@@ -39,6 +39,11 @@ cd members_app
 Run the following SQL in your MySQL/MariaDB database to create the members table:
 
 ```sql
+--
+-- Table structure for table `members`
+--
+
+DROP TABLE IF EXISTS `members`;
 CREATE TABLE `members` (
   `id` int(11) NOT NULL,
   `username` varchar(65) NOT NULL,
@@ -47,17 +52,81 @@ CREATE TABLE `members` (
   `email_address` varchar(75) NOT NULL,
   `date_created` int(11) NOT NULL,
   `num_logins` int(11) NOT NULL DEFAULT 0,
+  `last_login` int(11) NOT NULL,
   `password` text NOT NULL,
   `user_token` varchar(32) NOT NULL,
   `confirmed` tinyint(1) NOT NULL DEFAULT 0,
-  `trongate_user_id` int(11) NOT NULL
+  `trongate_user_id` int(11) NOT NULL,
+  `ip_address` varchar(65) NOT NULL DEFAULT ''
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `password_reset_tokens`
+--
+
+DROP TABLE IF EXISTS `password_reset_tokens`;
+CREATE TABLE `password_reset_tokens` (
+  `id` int(11) NOT NULL,
+  `ip_address` varchar(45) NOT NULL,
+  `email_address` varchar(75) NOT NULL,
+  `date_created` int(11) NOT NULL,
+  `token` varchar(32) NOT NULL,
+  `member_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `rate_limiter`
+--
+
+DROP TABLE IF EXISTS `rate_limiter`;
+CREATE TABLE `rate_limiter` (
+  `id` int(11) NOT NULL,
+  `ip_address` varchar(65) NOT NULL,
+  `num_failed_attempts` tinyint(1) NOT NULL,
+  `next_attempt_allowed` int(11) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Indexes for table `members`
+--
 ALTER TABLE `members`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `username` (`username`);
+
+--
+-- Indexes for table `password_reset_tokens`
+--
+ALTER TABLE `password_reset_tokens`
   ADD PRIMARY KEY (`id`);
 
+--
+-- Indexes for table `rate_limiter`
+--
+ALTER TABLE `rate_limiter`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- AUTO_INCREMENT for table `members`
+--
 ALTER TABLE `members`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2159;
+
+--
+-- AUTO_INCREMENT for table `password_reset_tokens`
+--
+ALTER TABLE `password_reset_tokens`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `rate_limiter`
+--
+ALTER TABLE `rate_limiter`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+COMMIT;
 ```
 
 ### 4. Configure Application
